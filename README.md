@@ -80,6 +80,5 @@ npm run lint
 
 ## Attribution
 
-Inspired by `homebridge-lifx-plugin` by calvarium (Apache-2.0). The black-body
-colour-temperature approximation derives from the published Tanner Helland
-algorithm. Depends on `lifx-lan-client` (MIT). See `NOTICE`.
+Inspired by `homebridge-lifx-plugin` by calvarium (Apache-2.0). Depends on
+`lifx-lan-client` (MIT). See `NOTICE`.
