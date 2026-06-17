@@ -30,8 +30,10 @@
     "lint": "eslint src/**/*.ts --max-warnings=0",
     "build": "rimraf ./dist && tsc",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "watch": "npm run build && npm link && nodemon",
-    "prepublishOnly": "npm run lint && npm run build"
+    "prepublishOnly": "npm run lint && npm run build && npm test"
   },
   "keywords": [
     "homebridge-plugin",
@@ -51,6 +53,7 @@
     "homebridge": "^1.7.0",
     "nodemon": "^3.0.3",
     "rimraf": "^5.0.5",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^1.6.1"
   }
 }

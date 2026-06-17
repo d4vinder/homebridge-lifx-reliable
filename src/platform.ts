@@ -69,6 +69,12 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
       ...this.settings.switches.map((s) => s.address),
     ].filter((a): a is string => typeof a === 'string' && a.length > 0);
 
+    this.log.info(
+      'Starting LIFX discovery (auto-discover %s%s)…',
+      this.settings.autoDiscover ? 'on' : 'off',
+      seedLights.length ? `, ${seedLights.length} seeded` : '',
+    );
+
     this.transport.start({
       bindAddress: this.settings.bindAddress,
       broadcast,
@@ -101,6 +107,13 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
     } catch {
       hasRelays = false;
     }
+
+    this.log.info(
+      'Discovered %s "%s" at %s',
+      hasRelays ? 'switch' : 'bulb',
+      label,
+      device.address || device.id,
+    );
 
     if (hasRelays) {
       for (let i = 0; i < 4; i++) {
@@ -149,7 +162,9 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
 
   private attachLight(device: TransportDevice, name: string): void {
     const uuid = this.uuid(device.id);
-    const accessory = this.findCached(uuid) ?? this.register(uuid, name);
+    const cached = this.findCached(uuid);
+    const accessory = cached ?? this.register(uuid, name);
+    this.log.info('%s bulb accessory: %s', cached ? 'Restored' : 'Added', name);
 
     const bulb = new Light(device, {
       power: this.settings.duration,
@@ -162,7 +177,9 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
 
   private attachSwitch(device: TransportDevice, name: string, index: number): void {
     const uuid = this.relayUuid(device.id, index);
-    const accessory = this.findCached(uuid) ?? this.register(uuid, name);
+    const cached = this.findCached(uuid);
+    const accessory = cached ?? this.register(uuid, name);
+    this.log.info('%s switch accessory: %s', cached ? 'Restored' : 'Added', name);
 
     const relay = new RelayDevice(device, name);
     this.track(device.id, new SwitchAccessory(this, accessory, relay, index, device.id, name));

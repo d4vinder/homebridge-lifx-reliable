@@ -1,4 +1,4 @@
-import { kelvinToMired, miredToHueSaturation, miredToKelvin } from '../protocol/colour';
+import { kelvinToMired, miredToKelvin } from '../protocol/colour';
 import { resolveProduct } from '../protocol/products';
 import type { TransportDevice } from '../protocol/transport';
 import type { DeviceFeatures, FirmwareVersion, Hsbk, LightState } from '../types';
@@ -168,10 +168,14 @@ export class Light {
   }
 
   async setColorTemperature(mired: number): Promise<void> {
-    const { hue, saturation } = miredToHueSaturation(mired);
     const [lo, hi] = this.kelvinRange;
-    this.state.color.hue = hue;
-    this.state.color.saturation = saturation;
+    // LIFX bulbs have a dedicated white channel: render colour temperature
+    // natively via the kelvin field with zero saturation, instead of tinting the
+    // bulb with an RGB approximation of the black body. saturation:0 is what
+    // makes HomeKit's warm/cool slider (and Adaptive Lighting) produce clean
+    // white rather than a saturated orange/blue.
+    this.state.color.hue = 0;
+    this.state.color.saturation = 0;
     this.state.color.kelvin = Math.min(Math.max(lo, miredToKelvin(mired)), hi);
     await this.push(this.durations.colour);
   }
