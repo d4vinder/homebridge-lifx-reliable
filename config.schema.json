@@ -1,0 +1,176 @@
+{
+  "pluginAlias": "LifxReliable",
+  "pluginType": "platform",
+  "singular": true,
+  "headerDisplay": "Resilient LIFX LAN bridge with jittered polling and hysteresis offline detection.",
+  "footerDisplay": "",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Platform Name",
+        "type": "string",
+        "required": true,
+        "default": "LIFX Reliable"
+      },
+      "autoDiscover": {
+        "title": "Auto Discover",
+        "type": "boolean",
+        "default": true,
+        "description": "Broadcast to discover bulbs automatically."
+      },
+      "duration": {
+        "title": "Power Fade (ms)",
+        "type": "integer",
+        "default": 0,
+        "minimum": 0
+      },
+      "brightnessDuration": {
+        "title": "Brightness Fade (ms)",
+        "type": "integer",
+        "default": 300,
+        "minimum": 0
+      },
+      "colorDuration": {
+        "title": "Colour Fade (ms)",
+        "type": "integer",
+        "default": 300,
+        "minimum": 0
+      },
+      "pollIntervalMs": {
+        "title": "Poll Interval (ms)",
+        "type": "integer",
+        "default": 5000,
+        "minimum": 1000,
+        "description": "Base interval between state polls per device."
+      },
+      "pollJitterMs": {
+        "title": "Poll Jitter (ms)",
+        "type": "integer",
+        "default": 1500,
+        "minimum": 0,
+        "description": "Random extra delay added to each poll so a fleet does not poll in lockstep."
+      },
+      "lightOfflineTolerance": {
+        "title": "Offline Tolerance",
+        "type": "integer",
+        "default": 3,
+        "minimum": 1,
+        "description": "Consecutive failed polls before a device is marked Not Responding."
+      },
+      "bindAddress": {
+        "title": "Bind Address",
+        "type": "string",
+        "format": "hostname",
+        "default": "0.0.0.0"
+      },
+      "broadcast": {
+        "title": "Broadcast Address",
+        "type": "string",
+        "format": "hostname",
+        "default": "255.255.255.255"
+      },
+      "messageHandlerTimeout": {
+        "title": "Handler Timeout (ms)",
+        "type": "integer",
+        "default": 45000,
+        "minimum": 100
+      },
+      "resendPacketDelay": {
+        "title": "Resend Delay (ms)",
+        "type": "integer",
+        "default": 150,
+        "minimum": 50
+      },
+      "resendMaxTimes": {
+        "title": "Resend Max Times",
+        "type": "integer",
+        "default": 3,
+        "minimum": 0
+      },
+      "exposeFirmware": {
+        "title": "Expose Firmware Revision",
+        "type": "boolean",
+        "default": true
+      },
+      "debug": {
+        "title": "Debug",
+        "type": "boolean",
+        "default": false
+      },
+      "bulbs": {
+        "type": "array",
+        "items": {
+          "title": "Bulbs",
+          "type": "object",
+          "properties": {
+            "name": { "title": "Name", "type": "string", "placeholder": "Enter bulb name..." },
+            "address": { "type": "string", "format": "hostname", "placeholder": "xxx.xxx.xxx.xxx" }
+          }
+        }
+      },
+      "switches": {
+        "type": "array",
+        "items": {
+          "title": "Switches",
+          "type": "object",
+          "properties": {
+            "name": { "title": "Name", "type": "string", "placeholder": "Enter switch name..." },
+            "address": { "type": "string", "format": "hostname", "placeholder": "xxx.xxx.xxx.xxx" }
+          }
+        }
+      },
+      "excludes": {
+        "type": "array",
+        "items": {
+          "title": "Excludes",
+          "type": "object",
+          "properties": {
+            "name": { "title": "Name", "type": "string", "placeholder": "Enter bulb name..." },
+            "address": { "type": "string", "format": "hostname", "placeholder": "xxx.xxx.xxx.xxx" },
+            "id": { "title": "Serial", "type": "string", "placeholder": "" }
+          }
+        }
+      }
+    }
+  },
+  "layout": [
+    "name",
+    "autoDiscover",
+    "duration",
+    "brightnessDuration",
+    "colorDuration",
+    {
+      "key": "bulbs",
+      "type": "array",
+      "orderable": false,
+      "buttonText": "Add Bulb",
+      "items": ["bulbs[].name", "bulbs[].address"]
+    },
+    {
+      "key": "excludes",
+      "type": "array",
+      "orderable": false,
+      "buttonText": "Add Exclusion",
+      "items": ["excludes[].name", "excludes[].address", "excludes[].id"]
+    },
+    {
+      "type": "section",
+      "title": "Advanced",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        "pollIntervalMs",
+        "pollJitterMs",
+        "lightOfflineTolerance",
+        "bindAddress",
+        "broadcast",
+        "messageHandlerTimeout",
+        "resendPacketDelay",
+        "resendMaxTimes",
+        "exposeFirmware",
+        "debug"
+      ]
+    }
+  ]
+}

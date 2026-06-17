@@ -1,0 +1,13 @@
+homebridge-lifx-reliable
+Copyright 2026 DS
+
+This product was independently written. Its design was informed by, and is a
+reimplementation inspired by, "homebridge-lifx-plugin"
+(https://github.com/calvarium/homebridge-lifx-plugin), which is licensed under
+the Apache License, Version 2.0.
+
+The black-body colour-temperature approximation in src/protocol/colour.ts is
+derived from the publicly published Tanner Helland algorithm.
+
+This software depends on, but does not include, "lifx-lan-client"
+(https://github.com/node-lifx/lifx-lan-client), MIT licensed.

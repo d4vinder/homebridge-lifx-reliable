@@ -1,0 +1,56 @@
+{
+  "private": false,
+  "displayName": "LIFX Reliable",
+  "name": "homebridge-lifx-reliable",
+  "version": "1.0.0",
+  "description": "A resilient Homebridge bridge for LIFX LAN bulbs and switches: strict TypeScript, jittered polling, hysteresis offline detection, and a swappable transport layer.",
+  "license": "Apache-2.0",
+  "author": "DS",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d4vinder/homebridge-lifx-reliable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/d4vinder/homebridge-lifx-reliable/issues"
+  },
+  "homepage": "https://github.com/d4vinder/homebridge-lifx-reliable#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "homebridge": ">=1.6.0 || ^2.0.0-beta.0"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "config.schema.json",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "scripts": {
+    "lint": "eslint src/**/*.ts --max-warnings=0",
+    "build": "rimraf ./dist && tsc",
+    "typecheck": "tsc --noEmit",
+    "watch": "npm run build && npm link && nodemon",
+    "prepublishOnly": "npm run lint && npm run build"
+  },
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge",
+    "lifx",
+    "smartbulb",
+    "homekit"
+  ],
+  "dependencies": {
+    "lifx-lan-client": "^2.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "homebridge": "^1.7.0",
+    "nodemon": "^3.0.3",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  }
+}
