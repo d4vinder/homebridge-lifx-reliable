@@ -111,6 +111,14 @@
         "minimum": 1,
         "description": "How long after startup to wait for devices to respond before treating an un-seen cached accessory as stale."
       },
+      "multizoneSegments": {
+        "title": "Multizone Segments",
+        "type": "integer",
+        "default": 8,
+        "minimum": 1,
+        "maximum": 80,
+        "description": "Number of independently-controllable segments to split a multizone strip (LIFX Z / Beam) into."
+      },
       "bulbs": {
         "type": "array",
         "items": {
@@ -191,6 +199,7 @@
         "exposeFirmware",
         "removeStaleAccessories",
         "staleAccessoryDelaySeconds",
+        "multizoneSegments",
         "debug"
       ]
     }

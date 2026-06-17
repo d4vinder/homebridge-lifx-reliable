@@ -14,8 +14,10 @@ import { LanClientTransport } from './protocol/LanClientTransport';
 import type { LifxTransport, TransportDevice } from './protocol/transport';
 import { Light } from './devices/Light';
 import { RelayDevice } from './devices/RelayDevice';
+import { StripSegment } from './devices/Strip';
 import { LightAccessory } from './accessories/LightAccessory';
 import { SwitchAccessory } from './accessories/SwitchAccessory';
+import { SegmentAccessory } from './accessories/SegmentAccessory';
 import { BaseAccessory } from './accessories/BaseAccessory';
 
 export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
@@ -158,19 +160,54 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
       hasRelays = false;
     }
 
-    this.log.info(
-      'Discovered %s "%s" at %s',
-      hasRelays ? 'switch' : 'bulb',
-      label,
-      device.address || device.id,
-    );
+    let multizone = false;
+    if (!hasRelays) {
+      try {
+        multizone = await device.isMultizone();
+      } catch {
+        multizone = false;
+      }
+    }
+
+    const kind = hasRelays ? 'switch' : multizone ? 'strip' : 'bulb';
+    this.log.info('Discovered %s "%s" at %s', kind, label, device.address || device.id);
 
     if (hasRelays) {
       for (let i = 0; i < 4; i++) {
         this.attachSwitch(device, `${label} ${i + 1}`, i);
       }
+    } else if (multizone) {
+      await this.attachStrip(device, label);
     } else {
       this.attachLight(device, label);
+    }
+  }
+
+  /** Split a multizone strip into independently-controllable segment lights. */
+  private async attachStrip(device: TransportDevice, label: string): Promise<void> {
+    // Replace any legacy single-light accessory for this strip from before
+    // multizone support existed.
+    this.removeByUuid(this.uuid(device.id));
+
+    let zoneCount = 0;
+    try {
+      zoneCount = await device.getZoneCount();
+    } catch {
+      zoneCount = 0;
+    }
+    if (zoneCount <= 0) {
+      this.log.warn('Strip "%s" reported no zones; exposing it as a single light.', label);
+      this.attachLight(device, label);
+      return;
+    }
+
+    const segments = Math.max(1, Math.min(this.settings.multizoneSegments, zoneCount));
+    this.log.info('Strip "%s": %d zones → %d segments', label, zoneCount, segments);
+
+    for (let i = 0; i < segments; i++) {
+      const start = Math.floor((i * zoneCount) / segments);
+      const end = Math.floor(((i + 1) * zoneCount) / segments) - 1;
+      this.attachSegment(device, `${label} ${i + 1}`, start, end, i);
     }
   }
 
@@ -195,9 +232,10 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
   }
 
   private removeByUuid(uuid: string): void {
-    const accessory = this.findCached(uuid);
-    if (accessory) {
-      this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    const index = this.cached.findIndex((a) => a.UUID === uuid);
+    if (index !== -1) {
+      this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [this.cached[index]]);
+      this.cached.splice(index, 1);
     }
   }
 
@@ -235,6 +273,33 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
 
     const relay = new RelayDevice(device, name);
     this.track(device.id, new SwitchAccessory(this, accessory, relay, index, device.id, name));
+  }
+
+  private attachSegment(
+    device: TransportDevice,
+    name: string,
+    startIndex: number,
+    endIndex: number,
+    index: number,
+  ): void {
+    const uuid = this.api.hap.uuid.generate(`zone${index}:${device.id}`);
+    const cached = this.findCached(uuid);
+    const accessory = cached ?? this.register(uuid, name);
+    this.claimed.add(uuid);
+    this.log.info(
+      '%s strip segment: %s (zones %d–%d)',
+      cached ? 'Restored' : 'Added',
+      name,
+      startIndex,
+      endIndex,
+    );
+
+    const segment = new StripSegment(device, name, startIndex, endIndex, {
+      power: this.settings.duration,
+      brightness: this.settings.brightnessDuration,
+      colour: this.settings.colorDuration,
+    });
+    this.track(device.id, new SegmentAccessory(this, accessory, segment, device.id));
   }
 
   private track(id: string, accessory: BaseAccessory): void {
