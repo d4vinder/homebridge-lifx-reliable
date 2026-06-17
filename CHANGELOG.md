@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format is loosely
 based on [Keep a Changelog](https://keepachangelog.com/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0]
+
+### Added
+- **Multizone "Move" animation** exposed as a Fan: Active = on/off, the speed
+  slider = animation speed, fan direction = TOWARDS / AWAY (`multizoneMoveEffect`,
+  default on).
+- **Preset gradient themes** (Rainbow, Sunset, Ocean, Forest, Fire) as momentary
+  switches that paint a strip; pair with Move for animated themes
+  (`multizoneThemes`, default on). Starting Move or applying a theme powers the
+  strip on first.
+
 ## [1.3.1]
 
 ### Fixed
