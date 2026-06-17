@@ -2,7 +2,7 @@
   "private": false,
   "displayName": "LIFX Reliable",
   "name": "homebridge-lifx-reliable",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "A resilient Homebridge bridge for LIFX LAN bulbs and switches: strict TypeScript, jittered polling, hysteresis offline detection, and a swappable transport layer.",
   "license": "Apache-2.0",
   "author": "DS",

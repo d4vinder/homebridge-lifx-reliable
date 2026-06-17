@@ -13,32 +13,58 @@ interface ZoneCall {
   durationMs: number;
 }
 
-function makeStripDevice(zoneColor: Hsbk): {
+function makeStripDevice(
+  zoneColor: Hsbk,
+  power = 65535,
+): {
   device: TransportDevice;
   calls: ZoneCall[];
+  powerCalls: boolean[];
 } {
   const calls: ZoneCall[] = [];
+  const powerCalls: boolean[] = [];
+  let devicePower = power;
   const device = {
     id: 'd073d5strip',
     address: '192.168.1.30',
+    getState: async () => ({ color: { ...zoneColor }, power: devicePower, label: 'Strip' }),
     getZoneColor: async (_index: number) => ({ ...zoneColor }),
     setZoneColors: async (startIndex: number, endIndex: number, color: Hsbk, durationMs: number) => {
       calls.push({ startIndex, endIndex, color: { ...color }, durationMs });
     },
+    setPower: async (on: boolean) => {
+      powerCalls.push(on);
+      devicePower = on ? 65535 : 0;
+    },
   } as unknown as TransportDevice;
-  return { device, calls };
+  return { device, calls, powerCalls };
 }
 
 describe('StripSegment', () => {
-  it('pulls its representative zone colour and reports on/off via brightness', async () => {
-    const { device } = makeStripDevice({ hue: 200, saturation: 80, brightness: 70, kelvin: 3500 });
-    const seg = new StripSegment(device, 'Worktop 1', 0, 6, durations);
+  it('is on only when the strip is powered and its zones are bright', async () => {
+    const lit = makeStripDevice({ hue: 200, saturation: 80, brightness: 70, kelvin: 3500 }, 65535);
+    const litSeg = new StripSegment(lit.device, 'Worktop 1', 0, 6, durations);
+    expect(await litSeg.init()).toBe(true);
+    expect(litSeg.on).toBe(true);
+    expect(litSeg.brightness).toBe(70);
+    expect(litSeg.hue).toBe(200);
 
-    expect(await seg.init()).toBe(true);
+    // Bright zones but the strip master power is OFF -> segment is off.
+    const dark = makeStripDevice({ hue: 200, saturation: 80, brightness: 70, kelvin: 3500 }, 0);
+    const darkSeg = new StripSegment(dark.device, 'Worktop 1', 0, 6, durations);
+    await darkSeg.init();
+    expect(darkSeg.on).toBe(false);
+  });
+
+  it('turning a segment on powers the strip on (the fix)', async () => {
+    const { device, powerCalls } = makeStripDevice({ hue: 0, saturation: 0, brightness: 100, kelvin: 3500 }, 0);
+    const seg = new StripSegment(device, 'Worktop 1', 0, 6, durations);
+    await seg.init();
+    expect(seg.on).toBe(false); // strip was off
+
+    await seg.setOn(true);
+    expect(powerCalls).toContain(true); // master power turned on
     expect(seg.on).toBe(true);
-    expect(seg.brightness).toBe(70);
-    expect(seg.hue).toBe(200);
-    expect(seg.saturation).toBe(80);
   });
 
   it('writes only its own zone range when colour changes', async () => {
@@ -54,17 +80,17 @@ describe('StripSegment', () => {
     expect(calls[0].color.hue).toBe(120);
   });
 
-  it('turns off by setting brightness 0 and restores the last level on', async () => {
-    const { device, calls } = makeStripDevice({ hue: 0, saturation: 0, brightness: 60, kelvin: 3500 });
+  it('turns off by dimming its zones to 0 and restores the last level on', async () => {
+    const { device, calls } = makeStripDevice({ hue: 0, saturation: 0, brightness: 60, kelvin: 3500 }, 65535);
     const seg = new StripSegment(device, 'Worktop 3', 30, 44, durations);
     await seg.init();
 
     await seg.setOn(false);
-    expect(calls[0].color.brightness).toBe(0);
+    expect(calls.at(-1)?.color.brightness).toBe(0);
     expect(seg.on).toBe(false);
 
     await seg.setOn(true);
-    expect(calls[1].color.brightness).toBe(60); // restored, not stuck at 0
+    expect(calls.at(-1)?.color.brightness).toBe(60); // restored, not stuck at 0
     expect(seg.on).toBe(true);
   });
 
@@ -72,6 +98,7 @@ describe('StripSegment', () => {
     const device = {
       id: 'x',
       address: 'y',
+      getState: async () => ({ color: { hue: 0, saturation: 0, brightness: 0, kelvin: 3500 }, power: 0, label: '' }),
       getZoneColor: async () => {
         throw new Error('timeout');
       },

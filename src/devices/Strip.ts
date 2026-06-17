@@ -16,6 +16,8 @@ export interface SegmentDurations {
 export class StripSegment {
   private color: Hsbk = { hue: 0, saturation: 0, brightness: 0, kelvin: 3500 };
   private lastOnBrightness = 100;
+  /** The strip's device-level power. Zones only light when this is on. */
+  private devicePowerOn = false;
 
   constructor(
     private readonly device: TransportDevice,
@@ -32,11 +34,15 @@ export class StripSegment {
   /** Refresh from the strip using the segment's first zone as representative. */
   async pull(): Promise<boolean> {
     try {
-      const color = await this.device.getZoneColor(this.startIndex);
+      const [color, state] = await Promise.all([
+        this.device.getZoneColor(this.startIndex),
+        this.device.getState(),
+      ]);
       if (!color) {
         return false;
       }
       this.color = color;
+      this.devicePowerOn = Boolean(state) && state.power > 0;
       if (color.brightness > 0) {
         this.lastOnBrightness = color.brightness;
       }
@@ -46,8 +52,9 @@ export class StripSegment {
     }
   }
 
+  /** A segment is only on when the strip is powered AND its zones are bright. */
   get on(): boolean {
-    return this.color.brightness > 0;
+    return this.devicePowerOn && this.color.brightness > 0;
   }
 
   get brightness(): number {
@@ -63,16 +70,33 @@ export class StripSegment {
   }
 
   async setOn(on: boolean): Promise<void> {
-    this.color.brightness = on ? this.lastOnBrightness : 0;
-    await this.push(this.durations.power);
+    if (on) {
+      this.color.brightness = this.lastOnBrightness;
+      await this.ensureDevicePower();
+      await this.push(this.durations.power);
+    } else {
+      // Dim this segment's zones to 0; leave the strip powered so other
+      // segments keep working.
+      this.color.brightness = 0;
+      await this.push(this.durations.power);
+    }
   }
 
   async setBrightness(value: number): Promise<void> {
     this.color.brightness = value;
     if (value > 0) {
       this.lastOnBrightness = value;
+      await this.ensureDevicePower();
     }
     await this.push(this.durations.brightness);
+  }
+
+  /** Multizone zones only emit light when the strip's master power is on. */
+  private async ensureDevicePower(): Promise<void> {
+    if (!this.devicePowerOn) {
+      await this.device.setPower(true, this.durations.power);
+      this.devicePowerOn = true;
+    }
   }
 
   async setHue(value: number): Promise<void> {

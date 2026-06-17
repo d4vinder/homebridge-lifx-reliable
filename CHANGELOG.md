@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is loosely
 based on [Keep a Changelog](https://keepachangelog.com/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.1]
+
+### Fixed
+- Multizone segments did nothing when the strip's master power was off: turning
+  a segment on (or raising its brightness) now powers the strip on, and a
+  segment reports "on" only when the strip is powered *and* its zones are bright.
+
 ## [1.3.0]
 
 ### Added
