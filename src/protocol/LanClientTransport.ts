@@ -188,6 +188,16 @@ class LanClientDevice implements TransportDevice {
       true,
     );
   }
+
+  async setMoveEffect(
+    on: boolean,
+    speedMs: number,
+    direction: 'TOWARDS' | 'AWAY',
+  ): Promise<void> {
+    // setMultiZoneEffect requires speed/direction even for OFF; they are ignored
+    // when the effect is OFF.
+    this.light.setMultiZoneEffect(on ? 'MOVE' : 'OFF', speedMs, direction);
+  }
 }
 
 /**

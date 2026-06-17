@@ -41,6 +41,7 @@ function makeDevice(overrides: Partial<TransportDevice> = {}): {
     getZoneCount: async () => 0,
     getZoneColor: async () => ({ hue: 0, saturation: 0, brightness: 0, kelvin: 3500 }),
     setZoneColors: async () => undefined,
+    setMoveEffect: async () => undefined,
     ...overrides,
   };
   return { device, calls };

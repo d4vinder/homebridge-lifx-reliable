@@ -35,6 +35,8 @@ export interface TransportDevice {
   getZoneColor(index: number): Promise<Hsbk>;
   /** Set an inclusive zone range [startIndex, endIndex] to one colour. */
   setZoneColors(startIndex: number, endIndex: number, color: Hsbk, durationMs: number): Promise<void>;
+  /** Start or stop the firmware "Move" animation on a multizone strip. */
+  setMoveEffect(on: boolean, speedMs: number, direction: 'TOWARDS' | 'AWAY'): Promise<void>;
 }
 
 export interface TransportEvents {

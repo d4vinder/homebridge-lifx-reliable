@@ -64,6 +64,8 @@ export interface LifxPluginConfig extends PlatformConfig {
   removeStaleAccessories?: boolean;
   staleAccessoryDelaySeconds?: number;
   multizoneSegments?: number;
+  multizoneMoveEffect?: boolean;
+  multizoneThemes?: boolean;
   bulbs?: DeviceRef[];
   switches?: DeviceRef[];
   excludes?: DeviceRef[];
@@ -88,6 +90,8 @@ export interface ResolvedConfig {
   removeStaleAccessories: boolean;
   staleAccessoryDelaySeconds: number;
   multizoneSegments: number;
+  multizoneMoveEffect: boolean;
+  multizoneThemes: boolean;
   bulbs: DeviceRef[];
   switches: DeviceRef[];
   excludes: DeviceRef[];
@@ -121,6 +125,8 @@ export function resolveConfig(c: LifxPluginConfig): ResolvedConfig {
     removeStaleAccessories: bool(c.removeStaleAccessories, false),
     staleAccessoryDelaySeconds: num(c.staleAccessoryDelaySeconds, 30),
     multizoneSegments: num(c.multizoneSegments, 8),
+    multizoneMoveEffect: bool(c.multizoneMoveEffect, true),
+    multizoneThemes: bool(c.multizoneThemes, true),
     bulbs: arr<DeviceRef>(c.bulbs),
     switches: arr<DeviceRef>(c.switches),
     excludes: arr<DeviceRef>(c.excludes),

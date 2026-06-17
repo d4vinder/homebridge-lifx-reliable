@@ -60,6 +60,15 @@ colour lights — one per contiguous range of zones — so sections can be set
 separately. The number of segments is configurable via `multizoneSegments`
 (default 8); zones are divided into equal segments.
 
+Two extras recreate the LIFX app's signature looks, both on by default:
+
+- **Move** (`multizoneMoveEffect`) — the firmware scrolling animation, exposed
+  as a Fan: Active toggles it, the speed slider sets the animation speed, and the
+  fan direction selects TOWARDS / AWAY.
+- **Themes** (`multizoneThemes`) — momentary switches (Rainbow, Sunset, Ocean,
+  Forest, Fire) that paint a palette across the strip. Apply a theme then turn on
+  Move for an animated gradient.
+
 ## Install
 
 ```bash

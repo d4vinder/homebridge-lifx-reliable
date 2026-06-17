@@ -119,6 +119,18 @@
         "maximum": 80,
         "description": "Number of independently-controllable segments to split a multizone strip (LIFX Z / Beam) into."
       },
+      "multizoneMoveEffect": {
+        "title": "Multizone Move Effect",
+        "type": "boolean",
+        "default": true,
+        "description": "Expose the firmware Move animation for multizone strips as a Fan (speed + direction)."
+      },
+      "multizoneThemes": {
+        "title": "Multizone Theme Switches",
+        "type": "boolean",
+        "default": true,
+        "description": "Expose preset gradient themes (Rainbow, Sunset, …) as switches that paint a multizone strip."
+      },
       "bulbs": {
         "type": "array",
         "items": {
@@ -200,6 +212,8 @@
         "removeStaleAccessories",
         "staleAccessoryDelaySeconds",
         "multizoneSegments",
+        "multizoneMoveEffect",
+        "multizoneThemes",
         "debug"
       ]
     }

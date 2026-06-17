@@ -113,3 +113,45 @@ export class StripSegment {
     await this.device.setZoneColors(this.startIndex, this.endIndex, this.color, durationMs);
   }
 }
+
+export type MoveDirection = 'TOWARDS' | 'AWAY';
+
+/** Period (ms per cycle) at the fastest and slowest HomeKit fan-speed ends. */
+const MOVE_FAST_MS = 500;
+const MOVE_SLOW_MS = 15000;
+
+/**
+ * Whole-strip operations that span all zones: the firmware "Move" animation and
+ * painting a palette of colour stops (a theme) across the strip.
+ */
+export class MultizoneStrip {
+  constructor(
+    private readonly device: TransportDevice,
+    private readonly zoneCount: number,
+    private readonly powerFadeMs: number,
+  ) {}
+
+  /** Map a HomeKit fan speed (0-100) to a LIFX cycle period; higher % = faster. */
+  static speedToMs(speedPct: number): number {
+    const clamped = Math.min(100, Math.max(1, speedPct));
+    return Math.round(MOVE_SLOW_MS - (clamped / 100) * (MOVE_SLOW_MS - MOVE_FAST_MS));
+  }
+
+  async setMove(on: boolean, speedPct: number, direction: MoveDirection): Promise<void> {
+    if (on) {
+      await this.device.setPower(true, this.powerFadeMs);
+    }
+    await this.device.setMoveEffect(on, MultizoneStrip.speedToMs(speedPct), direction);
+  }
+
+  /** Paint a palette of colour stops evenly across all zones. */
+  async applyTheme(stops: Hsbk[], durationMs: number): Promise<void> {
+    await this.device.setPower(true, this.powerFadeMs);
+    const n = stops.length;
+    for (let i = 0; i < n; i++) {
+      const start = Math.floor((i * this.zoneCount) / n);
+      const end = Math.floor(((i + 1) * this.zoneCount) / n) - 1;
+      await this.device.setZoneColors(start, end, stops[i], durationMs);
+    }
+  }
+}

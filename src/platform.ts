@@ -14,10 +14,13 @@ import { LanClientTransport } from './protocol/LanClientTransport';
 import type { LifxTransport, TransportDevice } from './protocol/transport';
 import { Light } from './devices/Light';
 import { RelayDevice } from './devices/RelayDevice';
-import { StripSegment } from './devices/Strip';
+import { StripSegment, MultizoneStrip } from './devices/Strip';
+import { STRIP_THEMES } from './protocol/themes';
 import { LightAccessory } from './accessories/LightAccessory';
 import { SwitchAccessory } from './accessories/SwitchAccessory';
 import { SegmentAccessory } from './accessories/SegmentAccessory';
+import { MoveEffectAccessory } from './accessories/MoveEffectAccessory';
+import { ThemeAccessory } from './accessories/ThemeAccessory';
 import { BaseAccessory } from './accessories/BaseAccessory';
 
 export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
@@ -208,6 +211,29 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
       const start = Math.floor((i * zoneCount) / segments);
       const end = Math.floor(((i + 1) * zoneCount) / segments) - 1;
       this.attachSegment(device, `${label} ${i + 1}`, start, end, i);
+    }
+
+    // Whole-strip effect + theme controls, shared one strip controller.
+    const strip = new MultizoneStrip(device, zoneCount, this.settings.duration);
+
+    if (this.settings.multizoneMoveEffect) {
+      const name = `${label} Motion`;
+      const uuid = this.api.hap.uuid.generate(`move:${device.id}`);
+      const accessory = this.findCached(uuid) ?? this.register(uuid, name);
+      this.claimed.add(uuid);
+      new MoveEffectAccessory(this, accessory, strip, name);
+      this.log.info('Added strip effect: %s', name);
+    }
+
+    if (this.settings.multizoneThemes) {
+      STRIP_THEMES.forEach((theme, i) => {
+        const name = `${label} ${theme.name}`;
+        const uuid = this.api.hap.uuid.generate(`theme${i}:${device.id}`);
+        const accessory = this.findCached(uuid) ?? this.register(uuid, name);
+        this.claimed.add(uuid);
+        new ThemeAccessory(this, accessory, strip, { name, stops: theme.stops }, this.settings.colorDuration);
+        this.log.info('Added strip theme: %s', name);
+      });
     }
   }
 
