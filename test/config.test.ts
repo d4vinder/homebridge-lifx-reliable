@@ -18,6 +18,8 @@ describe('resolveConfig', () => {
     expect(c.autoDiscover).toBe(true);
     expect(c.exposeFirmware).toBe(true);
     expect(c.debug).toBe(false);
+    expect(c.removeStaleAccessories).toBe(false);
+    expect(c.staleAccessoryDelaySeconds).toBe(30);
     expect(c.bulbs).toEqual([]);
     expect(c.switches).toEqual([]);
     expect(c.excludes).toEqual([]);

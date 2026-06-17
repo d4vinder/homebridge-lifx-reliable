@@ -29,6 +29,9 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
   private readonly transport: LifxTransport;
   private readonly cached: PlatformAccessory[] = [];
   private readonly active = new Map<string, BaseAccessory[]>();
+  /** UUIDs of accessories matched to a live device this session. */
+  private readonly claimed = new Set<string>();
+  private staleTimer?: NodeJS.Timeout;
 
   constructor(
     public readonly log: Logger,
@@ -42,7 +45,12 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
     this.log.debug('Initialised platform:', config.name);
 
     this.api.on('didFinishLaunching', () => this.discover());
-    this.api.on('shutdown', () => this.transport.stop());
+    this.api.on('shutdown', () => {
+      if (this.staleTimer) {
+        clearTimeout(this.staleTimer);
+      }
+      this.transport.stop();
+    });
   }
 
   /** Homebridge re-hydrates previously-registered accessories through here. */
@@ -85,6 +93,36 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
       debug: this.settings.debug,
       lights: seedLights,
     });
+
+    // After discovery has had time to settle, report (and optionally remove)
+    // cached accessories whose device never reappeared — e.g. a bulb that was
+    // permanently taken off the network.
+    const delayMs = Math.max(1, this.settings.staleAccessoryDelaySeconds) * 1000;
+    this.staleTimer = setTimeout(() => this.sweepStaleAccessories(), delayMs);
+  }
+
+  /**
+   * Cached accessories not claimed by a live device after the settle window are
+   * "stale". They are always logged; they are only unregistered when the user
+   * opts in via `removeStaleAccessories`, since removing an accessory also drops
+   * its HomeKit room assignment, automations and scenes.
+   */
+  private sweepStaleAccessories(): void {
+    const stale = this.cached.filter((a) => !this.claimed.has(a.UUID));
+    if (stale.length === 0) {
+      return;
+    }
+    for (const accessory of stale) {
+      if (this.settings.removeStaleAccessories) {
+        this.log.info('Removing stale accessory:', accessory.displayName);
+        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      } else {
+        this.log.warn(
+          'Accessory "%s" was not rediscovered; enable removeStaleAccessories to prune it.',
+          accessory.displayName,
+        );
+      }
+    }
   }
 
   private async onDeviceAdded(device: TransportDevice): Promise<void> {
@@ -94,9 +132,21 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
       return;
     }
 
+    // Guard against a device being added twice (e.g. transport reconnect): the
+    // first add already created and is polling its accessories.
+    if (this.active.has(device.id)) {
+      this.log.debug('Ignoring duplicate discovery for', device.id);
+      return;
+    }
+
     let label = device.address || 'LIFX Bulb';
     try {
-      label = (await device.getLabel()) || label;
+      // Labels set in the LIFX app often carry stray leading/trailing spaces;
+      // trim so HomeKit accessory names are clean.
+      const fetched = (await device.getLabel())?.trim();
+      if (fetched) {
+        label = fetched;
+      }
     } catch {
       // fall back to address
     }
@@ -164,6 +214,7 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
     const uuid = this.uuid(device.id);
     const cached = this.findCached(uuid);
     const accessory = cached ?? this.register(uuid, name);
+    this.claimed.add(uuid);
     this.log.info('%s bulb accessory: %s', cached ? 'Restored' : 'Added', name);
 
     const bulb = new Light(device, {
@@ -179,6 +230,7 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
     const uuid = this.relayUuid(device.id, index);
     const cached = this.findCached(uuid);
     const accessory = cached ?? this.register(uuid, name);
+    this.claimed.add(uuid);
     this.log.info('%s switch accessory: %s', cached ? 'Restored' : 'Added', name);
 
     const relay = new RelayDevice(device, name);

@@ -24,7 +24,8 @@
     "config.schema.json",
     "LICENSE",
     "NOTICE",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "lint": "eslint src/**/*.ts --max-warnings=0",
