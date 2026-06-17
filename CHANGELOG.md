@@ -12,7 +12,6 @@ adheres to [Semantic Versioning](https://semver.org/).
 - `removeStaleAccessories` (default off) and `staleAccessoryDelaySeconds`
   (default 30) options. After discovery settles, cached accessories whose device
   never reappeared are logged; with removal enabled they are unregistered.
-- Release automation: pushing a `vX.Y.Z` tag publishes to npm via GitHub Actions.
 
 ### Changed
 - LIFX labels are trimmed of stray leading/trailing whitespace before they
