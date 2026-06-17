@@ -98,6 +98,19 @@
         "type": "boolean",
         "default": false
       },
+      "removeStaleAccessories": {
+        "title": "Remove Stale Accessories",
+        "type": "boolean",
+        "default": false,
+        "description": "Unregister cached accessories whose device is no longer discovered. Off by default, because removing an accessory also drops its HomeKit room, scenes and automations."
+      },
+      "staleAccessoryDelaySeconds": {
+        "title": "Stale Accessory Delay (s)",
+        "type": "integer",
+        "default": 30,
+        "minimum": 1,
+        "description": "How long after startup to wait for devices to respond before treating an un-seen cached accessory as stale."
+      },
       "bulbs": {
         "type": "array",
         "items": {
@@ -148,6 +161,13 @@
       "items": ["bulbs[].name", "bulbs[].address"]
     },
     {
+      "key": "switches",
+      "type": "array",
+      "orderable": false,
+      "buttonText": "Add Switch",
+      "items": ["switches[].name", "switches[].address"]
+    },
+    {
       "key": "excludes",
       "type": "array",
       "orderable": false,
@@ -169,6 +189,8 @@
         "resendPacketDelay",
         "resendMaxTimes",
         "exposeFirmware",
+        "removeStaleAccessories",
+        "staleAccessoryDelaySeconds",
         "debug"
       ]
     }
