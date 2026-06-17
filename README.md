@@ -58,16 +58,18 @@ interface — no changes to the accessory or device layers.
 A multizone strip (LIFX Z / Beam) is exposed as several independent HomeKit
 colour lights — one per contiguous range of zones — so sections can be set
 separately. The number of segments is configurable via `multizoneSegments`
-(default 8); zones are divided into equal segments.
+(default 4); zones are divided into equal segments. Reducing the count (or
+disabling the extras below) removes the corresponding tiles on the next restart.
 
-Two extras recreate the LIFX app's signature looks, both on by default:
-
-- **Move** (`multizoneMoveEffect`) — the firmware scrolling animation, exposed
-  as a Fan: Active toggles it, the speed slider sets the animation speed, and the
-  fan direction selects TOWARDS / AWAY.
-- **Themes** (`multizoneThemes`) — momentary switches (Rainbow, Sunset, Ocean,
-  Forest, Fire) that paint a palette across the strip. Apply a theme then turn on
-  Move for an animated gradient.
+- **Move** (`multizoneMoveEffect`, on by default) — the firmware scrolling
+  animation, exposed as a single on/off switch. Its speed (`multizoneMoveSpeed`,
+  1–100) and direction (`multizoneMoveDirection`, TOWARDS/AWAY) live in the
+  config rather than as HomeKit controls, to keep it to one tile.
+- **Themes** (`multizoneThemes`, off by default) — optional momentary switches
+  (Rainbow, Sunset, Ocean, Forest, Fire) that paint a palette across the strip.
+  Tidier alternative: build a Home **scene** from the segment lights (and the
+  Move switch) — it lives in Home's Scenes, not as tiles, and can be used in
+  automations.
 
 ## Install
 

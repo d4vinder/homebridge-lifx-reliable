@@ -114,22 +114,40 @@
       "multizoneSegments": {
         "title": "Multizone Segments",
         "type": "integer",
-        "default": 8,
+        "default": 4,
         "minimum": 1,
         "maximum": 80,
-        "description": "Number of independently-controllable segments to split a multizone strip (LIFX Z / Beam) into."
+        "description": "Number of independently-controllable segments to split a multizone strip (LIFX Z / Beam) into. Each becomes its own HomeKit light."
       },
       "multizoneMoveEffect": {
-        "title": "Multizone Move Effect",
+        "title": "Multizone Move Switch",
         "type": "boolean",
         "default": true,
-        "description": "Expose the firmware Move animation for multizone strips as a Fan (speed + direction)."
+        "description": "Expose the firmware Move animation for multizone strips as an on/off switch."
+      },
+      "multizoneMoveSpeed": {
+        "title": "Move Speed",
+        "type": "integer",
+        "default": 50,
+        "minimum": 1,
+        "maximum": 100,
+        "description": "Animation speed of the Move effect (1 = slow, 100 = fast)."
+      },
+      "multizoneMoveDirection": {
+        "title": "Move Direction",
+        "type": "string",
+        "default": "TOWARDS",
+        "oneOf": [
+          { "title": "Towards controller", "enum": ["TOWARDS"] },
+          { "title": "Away from controller", "enum": ["AWAY"] }
+        ],
+        "description": "Direction the Move animation travels."
       },
       "multizoneThemes": {
         "title": "Multizone Theme Switches",
         "type": "boolean",
-        "default": true,
-        "description": "Expose preset gradient themes (Rainbow, Sunset, …) as switches that paint a multizone strip."
+        "default": false,
+        "description": "Expose preset gradient themes (Rainbow, Sunset, …) as switches that paint a multizone strip. Off by default; building Home scenes from the segments is the tidier alternative."
       },
       "bulbs": {
         "type": "array",
@@ -213,6 +231,8 @@
         "staleAccessoryDelaySeconds",
         "multizoneSegments",
         "multizoneMoveEffect",
+        "multizoneMoveSpeed",
+        "multizoneMoveDirection",
         "multizoneThemes",
         "debug"
       ]
