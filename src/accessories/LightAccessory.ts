@@ -32,7 +32,13 @@ export class LightAccessory extends BaseAccessory {
         this.applyFirmware();
         this.bindCharacteristics();
         this.goLive(reachable);
-      });
+      })
+      .catch((err) =>
+        this.platform.log.error(
+          `Failed to set up ${this.bulb.name}:`,
+          err instanceof Error ? err.message : String(err),
+        ),
+      );
   }
 
   protected primaryService(): Service {

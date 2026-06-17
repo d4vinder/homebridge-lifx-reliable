@@ -67,7 +67,11 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
   private discover(): void {
     this.transport.on('error', (err) => this.log.error('Transport error:', err.message));
 
-    this.transport.on('device-added', (device) => this.onDeviceAdded(device));
+    this.transport.on('device-added', (device) => {
+      void this.onDeviceAdded(device).catch((err) =>
+        this.log.error('Failed to add device:', err instanceof Error ? err.message : String(err)),
+      );
+    });
 
     this.transport.on('device-online', (device) =>
       this.forEachAccessory(device.id, (a) => a.setOnline()),

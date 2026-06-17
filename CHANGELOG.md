@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format is loosely
 based on [Keep a Changelog](https://keepachangelog.com/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.1]
+
+### Changed
+- CI now also tests on Node.js 24.
+
+### Fixed
+- Background accessory-setup and device-added promises now `.catch` and log
+  their errors, so a one-off setup failure can never surface as an unhandled
+  rejection.
+
 ## [1.5.0]
 
 ### Changed

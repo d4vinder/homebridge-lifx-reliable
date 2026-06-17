@@ -24,11 +24,19 @@ export class SegmentAccessory extends BaseAccessory {
     // before init() resolves.
     this.service.getCharacteristic(platform.Characteristic.On).onGet(this.getOn.bind(this));
 
-    void this.segment.init().then((reachable) => {
-      this.bindCharacteristics();
-      this.service.setCharacteristic(platform.Characteristic.Name, this.segment.name);
-      this.goLive(reachable);
-    });
+    void this.segment
+      .init()
+      .then((reachable) => {
+        this.bindCharacteristics();
+        this.service.setCharacteristic(platform.Characteristic.Name, this.segment.name);
+        this.goLive(reachable);
+      })
+      .catch((err) =>
+        this.platform.log.error(
+          `Failed to set up ${this.segment.name}:`,
+          err instanceof Error ? err.message : String(err),
+        ),
+      );
   }
 
   protected primaryService(): Service {
