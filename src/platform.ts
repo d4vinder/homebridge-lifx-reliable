@@ -19,7 +19,7 @@ import { STRIP_THEMES } from './protocol/themes';
 import { LightAccessory } from './accessories/LightAccessory';
 import { SwitchAccessory } from './accessories/SwitchAccessory';
 import { SegmentAccessory } from './accessories/SegmentAccessory';
-import { MoveEffectAccessory } from './accessories/MoveEffectAccessory';
+import { MoveSwitchAccessory } from './accessories/MoveSwitchAccessory';
 import { ThemeAccessory } from './accessories/ThemeAccessory';
 import { BaseAccessory } from './accessories/BaseAccessory';
 
@@ -207,21 +207,30 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
     const segments = Math.max(1, Math.min(this.settings.multizoneSegments, zoneCount));
     this.log.info('Strip "%s": %d zones → %d segments', label, zoneCount, segments);
 
+    this.pruneStripAccessories(device.id, segments);
+
     for (let i = 0; i < segments; i++) {
       const start = Math.floor((i * zoneCount) / segments);
       const end = Math.floor(((i + 1) * zoneCount) / segments) - 1;
       this.attachSegment(device, `${label} ${i + 1}`, start, end, i);
     }
 
-    // Whole-strip effect + theme controls, shared one strip controller.
+    // Whole-strip effect + theme controls, sharing one strip controller.
     const strip = new MultizoneStrip(device, zoneCount, this.settings.duration);
 
     if (this.settings.multizoneMoveEffect) {
-      const name = `${label} Motion`;
-      const uuid = this.api.hap.uuid.generate(`move:${device.id}`);
+      const name = `${label} Move`;
+      const uuid = this.api.hap.uuid.generate(`movesw:${device.id}`);
       const accessory = this.findCached(uuid) ?? this.register(uuid, name);
       this.claimed.add(uuid);
-      new MoveEffectAccessory(this, accessory, strip, name);
+      new MoveSwitchAccessory(
+        this,
+        accessory,
+        strip,
+        name,
+        this.settings.multizoneMoveSpeed,
+        this.settings.multizoneMoveDirection,
+      );
       this.log.info('Added strip effect: %s', name);
     }
 
@@ -234,6 +243,33 @@ export class LifxHomebridgePlatform implements DynamicPlatformPlugin {
         new ThemeAccessory(this, accessory, strip, { name, stops: theme.stops }, this.settings.colorDuration);
         this.log.info('Added strip theme: %s', name);
       });
+    }
+  }
+
+  /**
+   * Remove strip accessories that this run will not re-create — segments beyond
+   * the current count, disabled effect/theme tiles, and the old Fan-based Move
+   * accessory — so reducing the config actually declutters the Home app.
+   */
+  private pruneStripAccessories(deviceId: string, segments: number): void {
+    const generate = (key: string): string => this.api.hap.uuid.generate(key);
+
+    // Old Fan-based Move accessory (pre-1.5) is always replaced by the switch.
+    this.removeByUuid(generate(`move:${deviceId}`));
+
+    // Segments above the configured count.
+    for (let i = segments; i < 256; i++) {
+      this.removeByUuid(generate(`zone${i}:${deviceId}`));
+    }
+
+    if (!this.settings.multizoneMoveEffect) {
+      this.removeByUuid(generate(`movesw:${deviceId}`));
+    }
+
+    if (!this.settings.multizoneThemes) {
+      for (let i = 0; i < STRIP_THEMES.length; i++) {
+        this.removeByUuid(generate(`theme${i}:${deviceId}`));
+      }
     }
   }
 

@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format is loosely
 based on [Keep a Changelog](https://keepachangelog.com/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.0]
+
+### Changed
+- Decluttered multizone strips. Default segment count is now **4** (was 8). The
+  Move effect is now a single on/off **switch** instead of a Fan; its speed and
+  direction moved to config (`multizoneMoveSpeed`, `multizoneMoveDirection`).
+  Theme switches are now **off by default** — building Home scenes from the
+  segments is the tidier path.
+- Reducing strip configuration (fewer segments, disabling Move/themes) now
+  removes the corresponding accessories on restart instead of leaving them
+  stranded.
+
 ## [1.4.0]
 
 ### Added

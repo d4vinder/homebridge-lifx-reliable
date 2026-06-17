@@ -20,7 +20,11 @@ describe('resolveConfig', () => {
     expect(c.debug).toBe(false);
     expect(c.removeStaleAccessories).toBe(false);
     expect(c.staleAccessoryDelaySeconds).toBe(30);
-    expect(c.multizoneSegments).toBe(8);
+    expect(c.multizoneSegments).toBe(4);
+    expect(c.multizoneMoveEffect).toBe(true);
+    expect(c.multizoneMoveSpeed).toBe(50);
+    expect(c.multizoneMoveDirection).toBe('TOWARDS');
+    expect(c.multizoneThemes).toBe(false);
     expect(c.bulbs).toEqual([]);
     expect(c.switches).toEqual([]);
     expect(c.excludes).toEqual([]);

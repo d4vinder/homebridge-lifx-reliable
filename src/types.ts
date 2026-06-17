@@ -65,6 +65,8 @@ export interface LifxPluginConfig extends PlatformConfig {
   staleAccessoryDelaySeconds?: number;
   multizoneSegments?: number;
   multizoneMoveEffect?: boolean;
+  multizoneMoveSpeed?: number;
+  multizoneMoveDirection?: string;
   multizoneThemes?: boolean;
   bulbs?: DeviceRef[];
   switches?: DeviceRef[];
@@ -91,6 +93,8 @@ export interface ResolvedConfig {
   staleAccessoryDelaySeconds: number;
   multizoneSegments: number;
   multizoneMoveEffect: boolean;
+  multizoneMoveSpeed: number;
+  multizoneMoveDirection: 'TOWARDS' | 'AWAY';
   multizoneThemes: boolean;
   bulbs: DeviceRef[];
   switches: DeviceRef[];
@@ -124,9 +128,11 @@ export function resolveConfig(c: LifxPluginConfig): ResolvedConfig {
     autoDiscover: bool(c.autoDiscover, true),
     removeStaleAccessories: bool(c.removeStaleAccessories, false),
     staleAccessoryDelaySeconds: num(c.staleAccessoryDelaySeconds, 30),
-    multizoneSegments: num(c.multizoneSegments, 8),
+    multizoneSegments: num(c.multizoneSegments, 4),
     multizoneMoveEffect: bool(c.multizoneMoveEffect, true),
-    multizoneThemes: bool(c.multizoneThemes, true),
+    multizoneMoveSpeed: num(c.multizoneMoveSpeed, 50),
+    multizoneMoveDirection: c.multizoneMoveDirection === 'AWAY' ? 'AWAY' : 'TOWARDS',
+    multizoneThemes: bool(c.multizoneThemes, false),
     bulbs: arr<DeviceRef>(c.bulbs),
     switches: arr<DeviceRef>(c.switches),
     excludes: arr<DeviceRef>(c.excludes),
