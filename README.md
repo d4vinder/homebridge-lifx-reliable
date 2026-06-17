@@ -53,6 +53,13 @@ interface — no changes to the accessory or device layers.
   reimplemented relay path cannot do this.
 - **Centralised config defaults** in `resolveConfig`.
 
+## Multizone strips
+
+A multizone strip (LIFX Z / Beam) is exposed as several independent HomeKit
+colour lights — one per contiguous range of zones — so sections can be set
+separately. The number of segments is configurable via `multizoneSegments`
+(default 8); zones are divided into equal segments.
+
 ## Install
 
 ```bash

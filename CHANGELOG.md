@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format is loosely
 based on [Keep a Changelog](https://keepachangelog.com/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0]
+
+### Added
+- **Multizone support (LIFX Z / Beam).** A multizone strip is split into a
+  configurable number of independently-controllable HomeKit colour lights
+  (`multizoneSegments`, default 8), each mapped to a contiguous zone range via
+  `setColorZones`. On upgrade, a strip's pre-existing single-light accessory is
+  replaced by its segments.
+
 ## [1.2.0]
 
 ### Added

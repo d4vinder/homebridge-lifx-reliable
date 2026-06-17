@@ -26,6 +26,15 @@ export interface TransportDevice {
 
   getRelayPower(index: number): Promise<number>;
   setRelayPower(index: number, on: boolean): Promise<void>;
+
+  /** Returns true if the device is a multizone strip (LIFX Z / Beam). */
+  isMultizone(): Promise<boolean>;
+  /** Total number of addressable zones on a multizone strip. */
+  getZoneCount(): Promise<number>;
+  /** Colour of a single zone (used as the representative colour for a segment). */
+  getZoneColor(index: number): Promise<Hsbk>;
+  /** Set an inclusive zone range [startIndex, endIndex] to one colour. */
+  setZoneColors(startIndex: number, endIndex: number, color: Hsbk, durationMs: number): Promise<void>;
 }
 
 export interface TransportEvents {

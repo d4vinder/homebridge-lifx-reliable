@@ -141,6 +141,53 @@ class LanClientDevice implements TransportDevice {
       this.light.relayOff(index);
     }
   }
+
+  isMultizone(): Promise<boolean> {
+    // Mirrors how the library detects relays: read the product's feature flags
+    // from the hardware/version response.
+    return callbackToPromise<{ productFeatures?: { multizone?: boolean } }>(
+      (cb) => this.light.getHardwareVersion(cb),
+      this.timeoutMs,
+      'getHardwareVersion',
+    )
+      .then((hw) => Boolean(hw?.productFeatures?.multizone))
+      .catch(() => false);
+  }
+
+  getZoneCount(): Promise<number> {
+    // A single-zone query returns the strip's total zone count.
+    return callbackToPromise<{ count: number }>(
+      (cb) => this.light.getColorZones(0, 0, cb),
+      this.timeoutMs,
+      'getColorZones',
+    ).then((r) => r.count);
+  }
+
+  getZoneColor(index: number): Promise<Hsbk> {
+    return callbackToPromise<{ color: Hsbk }>(
+      (cb) => this.light.getColorZones(index, index, cb),
+      this.timeoutMs,
+      'getColorZones',
+    ).then((r) => r.color);
+  }
+
+  async setZoneColors(
+    startIndex: number,
+    endIndex: number,
+    color: Hsbk,
+    durationMs: number,
+  ): Promise<void> {
+    this.light.colorZones(
+      startIndex,
+      endIndex,
+      color.hue,
+      color.saturation,
+      color.brightness,
+      color.kelvin,
+      durationMs,
+      true,
+    );
+  }
 }
 
 /**
